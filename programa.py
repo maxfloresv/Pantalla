@@ -17,49 +17,11 @@ ventana.geometry("600x600")
 ventana.title("Dispensador de sal de polifosfato")
 ventana.configure(background=bg_color)
 
-canvas = Canvas(bg=bg_color)
-# Lineas principales
-canvas.create_line(210, 0, 210, 555)
-canvas.create_line(0, 190, 600, 190)
-canvas.create_line(0, 380, 600, 380)
-canvas.create_line(0, 555, 600, 555)
-# Muestra la bateria restante
-canvas.create_line(90, 570, 120, 570)
-canvas.create_line(90, 585, 120, 585)
-canvas.create_line(90, 570, 90, 585)
-canvas.create_line(120, 570, 120, 574.5)
-canvas.create_line(120, 585, 120, 580.5)
-canvas.create_line(120, 574.5, 125, 574.5)
-canvas.create_line(120, 580.5, 125, 580.5)
-canvas.create_line(125, 574.5, 125, 580.5)
-canvas.create_rectangle(90, 570, 107, 585, fill='black')
-# ---
-canvas.pack(fill=BOTH, expand=1)
+def mainWindow():
+    def configurar():
+        points = [40, 30, 45, 30, 42.5, 35]
+        canvas.create_polygon(points)
 
-def configWindow(canvas):
-    print("A")
-    canvas.delete("all")
-    print("b")
-    canvas["bg"] = bg_color
-    # Lineas principales
-    canvas.create_line(210, 0, 210, 555)
-    canvas.create_line(0, 190, 600, 190)
-    canvas.create_line(0, 380, 600, 380)
-    canvas.create_line(0, 555, 600, 555)
-    # Muestra la bateria restante
-    canvas.create_line(90, 570, 120, 570)
-    canvas.create_line(90, 585, 120, 585)
-    canvas.create_line(90, 570, 90, 585)
-    canvas.create_line(120, 570, 120, 574.5)
-    canvas.create_line(120, 585, 120, 580.5)
-    canvas.create_line(120, 574.5, 125, 574.5)
-    canvas.create_line(120, 580.5, 125, 580.5)
-    canvas.create_line(125, 574.5, 125, 580.5)
-    canvas.create_rectangle(90, 570, 107, 585, fill='black')
-    # ---
-    canvas.pack(fill=BOTH, expand=1)
-
-def mainWindow(canvas):
     def obtenerHora(date):
         date = ctime(date)
         return date[11:19]
@@ -127,8 +89,7 @@ def mainWindow(canvas):
             hour.place(x=240, y=260)
             countdown("00", "00", "05", 240, 40, 0, dispose_time, wait_time)
 
-    canvas.delete("all")
-    canvas["bg"] = bg_color
+    canvas = Canvas(bg=bg_color)
     # Lineas principales
     canvas.create_line(210, 0, 210, 555)
     canvas.create_line(0, 190, 600, 190)
@@ -147,13 +108,18 @@ def mainWindow(canvas):
     # ---
     canvas.pack(fill=BOTH, expand=1)
 
-    l1 = Label(ventana, text="PRÓXIMA", bg=bg_color, font=("System", 20))
-    l1.place(x=40, y=50)
-    l1 = Label(ventana, text="DESCARGA", bg=bg_color, font=("System", 20))
-    l1.place(x=30, y=80)
-    l1 = Label(ventana, text="EN:", bg=bg_color, font=("System", 20))
-    l1.place(x=80, y=110)
+    primer_frame = []
+    L = Label(ventana, text="PRÓXIMA", bg=bg_color, font=("System", 20))
+    primer_frame.append(L)
+    L.place(x=40, y=50)
+    L = Label(ventana, text="DESCARGA", bg=bg_color, font=("System", 20))
+    primer_frame.append(L)
+    L.place(x=30, y=80)
+    L = Label(ventana, text="EN:", bg=bg_color, font=("System", 20))
+    primer_frame.append(L)
+    L.place(x=80, y=110)
     lv = Label(ventana, text=h_ini+":"+m_ini+":"+s_ini, bg=bg_color, font=("System", 60))
+    primer_frame.append(lv)
     lv.place(x=240, y=40)
 
     timestamp = time()
@@ -161,27 +127,36 @@ def mainWindow(canvas):
     hora = obtenerHora(timestamp)
     fecha = obtenerFecha(timestamp)
 
-    l2 = Label(ventana, text="PROGRAMADO", bg=bg_color, font=("System", 20))
-    l2.place(x=5, y=250)
-    l2 = Label(ventana, text="PARA EL:", bg=bg_color, font=("System", 20))
-    l2.place(x=30, y=280)
+    segundo_frame = []
+    L = Label(ventana, text="PROGRAMADO", bg=bg_color, font=("System", 20))
+    segundo_frame.append(L)
+    L.place(x=5, y=250)
+    L = Label(ventana, text="PARA EL:", bg=bg_color, font=("System", 20))
+    segundo_frame.append(L)
+    L.place(x=30, y=280)
     date_label = Label(ventana, text=fecha+" A LAS:", bg=bg_color, font=("System", 30))
+    segundo_frame.append(date_label)
     date_label.place(x=220, y=210)
     hour_label = Label(ventana, text=hora, bg=bg_color, font=("System", 60))
+    segundo_frame.append(hour_label)
     hour_label.place(x=240, y=260)
 
-    l3 = Label(ventana, text="TIEMPO DE", bg=bg_color, font=("System", 20))
-    l3.place(x=20, y=430)
-    l3 = Label(ventana, text="ESPERA:", bg=bg_color, font=("System", 20))
-    l3.place(x=40, y=460)
+    tercer_frame = []
+    L = Label(ventana, text="TIEMPO DE", bg=bg_color, font=("System", 20))
+    tercer_frame.append(L)
+    L.place(x=20, y=430)
+    L = Label(ventana, text="ESPERA:", bg=bg_color, font=("System", 20))
+    tercer_frame.append(L)
+    L.place(x=40, y=460)
     wait_label = Label(ventana, text="--:--:--", bg=bg_color, font=("System", 60))
+    tercer_frame.append(wait_label)
     wait_label.place(x=290, y=410)
 
     def actualizarReloj():
-        curr_hora = strftime("%H:%M:%S")
+        curr_hora = strftime("%H:%M")
         curr_fecha = strftime("%d-%m-%Y")
         l4 = Label(ventana, text=curr_hora, bg=bg_color, font=("System", 10))
-        l4.place(x=15, y=567.5)
+        l4.place(x=25, y=567.5)
         l4 = Label(ventana, text=curr_fecha, bg=bg_color, font=("System", 10))
         l4.place(x=200, y=567.5)
         l4.after(1000, actualizarReloj)
@@ -226,19 +201,19 @@ def mainWindow(canvas):
 
         sleep(1)
         ventana.update()
+
         countdown(h, m, s, x, y, stage, main_label, second_label)
+
+    b1 = Button(ventana, text="Configuración", command=ventana.destroy, bg=bg_color, font=("System", 10))
+    b1.place(x=310, y=565)
+    b2 = Button(ventana, text="Inicio", command=ventana.destroy, bg=bg_color, font=("System", 10))
+    b2.place(x=415, y=565)
+    b3 = Button(ventana, text="Regresar", command=ventana.destroy, bg=bg_color, font=("System", 10))
+    b3.place(x=465, y=565)
+    b4 = Button(ventana, text="Apagar", command=ventana.destroy, bg=bg_color, font=("System", 10))
+    b4.place(x=540, y=565)
 
     countdown(h_ini, m_ini, s_ini, 240, 40, 0, lv, wait_label)
 
-cfg_wdw = partial(configWindow, canvas)
-b1 = Button(ventana, text="Configuración", command=cfg_wdw, bg=bg_color, font=("System", 10))
-b1.place(x=310, y=565)
-b2 = Button(ventana, text="Inicio", command=ventana.destroy, bg=bg_color, font=("System", 10))
-b2.place(x=415, y=565)
-b3 = Button(ventana, text="Regresar", command=ventana.destroy, bg=bg_color, font=("System", 10))
-b3.place(x=465, y=565)
-b4 = Button(ventana, text="Apagar", command=ventana.destroy, bg=bg_color, font=("System", 10))
-b4.place(x=540, y=565)
-
-mainWindow(canvas)
+mainWindow()
 ventana.mainloop()
