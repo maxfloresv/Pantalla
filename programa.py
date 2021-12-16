@@ -187,6 +187,10 @@ def mainWindow():
     # De aqui para abajo, incluyendo countdown(h,m,s), hace que el tiempo de dispensacion baje.
     # str str str int int int Label Label -> None
     def countdown(h, m, s, x, y, stage, main_label, second_label):
+        global cfg_Mode
+        # si esta en el modo config, no queremos que siga la cuenta atras
+        if cfg_Mode:
+            return
         main_label.configure(text=h+":"+m+":"+s)
         main_label.place(x=x, y=y)
 
@@ -227,20 +231,6 @@ def mainWindow():
         primer_frame[2].place(x=5, y=110)
         segundo_frame[0].configure(text="SAL A")
         segundo_frame[1].configure(text="DISPENSAR:")
-        # Flechas pa arriba
-        canvas.create_polygon(250, 40, 265, 20, 280, 40)
-        canvas.create_polygon(295, 40, 310, 20, 325, 40)
-        canvas.create_polygon(360, 40, 375, 20, 390, 40)
-        canvas.create_polygon(405, 40, 420, 20, 435, 40)
-        canvas.create_polygon(470, 40, 485, 20, 500, 40)
-        canvas.create_polygon(515, 40, 530, 20, 545, 40)
-        # Flechas pa abajo
-        canvas.create_polygon(250, 150, 265, 170, 280, 150)
-        canvas.create_polygon(295, 150, 310, 170, 325, 150)
-        canvas.create_polygon(360, 150, 375, 170, 390, 150)
-        canvas.create_polygon(405, 150, 420, 170, 435, 150)
-        canvas.create_polygon(470, 150, 485, 170, 500, 150)
-        canvas.create_polygon(515, 150, 530, 170, 545, 150)
 
     # Event -> None
     def seccion_handler(e):
@@ -252,7 +242,145 @@ def mainWindow():
         if x > 600 or x < 230 or y < 0 or y > 570:
             return
         if 0 <= y <= 190:
-            print("pico pal que escucha")
+            def fH_up(_):
+                global h_ini
+                if int(h_ini) >= 90:
+                    resto = int(h_ini) % 10
+                    h_ini = "0" + str(resto)
+                else:
+                    h_ini = str(int(h_ini) + 10)
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(250, 40, 265, 20, 280, 40, tags="H_up")
+            canvas.tag_bind("H_up", "<Button-1>", fH_up)
+
+            def fh_up(_):
+                global h_ini
+                if int(h_ini) == 99:
+                    h_ini = "00"
+                else:
+                    h_ini = parseTime(str(int(h_ini) + 1), m_ini, s_ini)[0]
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(295, 40, 310, 20, 325, 40, tags="h_up")
+            canvas.tag_bind("h_up", "<Button-1>", fh_up)
+
+            def fM_up(_):
+                global m_ini
+                if int(m_ini) >= 50:
+                    resto = int(m_ini) % 10
+                    m_ini = "0" + str(resto)
+                else:
+                    m_ini = str(int(m_ini) + 10)
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(360, 40, 375, 20, 390, 40, tags="M_up")
+            canvas.tag_bind("M_up", "<Button-1>", fM_up)
+
+            def fm_up(_):
+                global m_ini
+                if int(m_ini) == 59:
+                    m_ini = "00"
+                else:
+                    m_ini = parseTime(h_ini, str(int(m_ini) + 1), s_ini)[1]
+                lv.configure(text=h_ini + ":" + m_ini + ":" + s_ini)
+
+            canvas.create_polygon(405, 40, 420, 20, 435, 40, tags="m_up")
+            canvas.tag_bind("m_up", "<Button-1>", fm_up)
+
+            def fS_up(_):
+                global s_ini
+                if int(s_ini) >= 50:
+                    resto = int(s_ini) % 10
+                    s_ini = "0" + str(resto)
+                else:
+                    s_ini = str(int(s_ini) + 10)
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(470, 40, 485, 20, 500, 40, tags="S_up")
+            canvas.tag_bind("S_up", "<Button-1>", fS_up)
+
+            def fs_up(_):
+                global s_ini
+                if int(s_ini) == 59:
+                    s_ini = "00"
+                else:
+                    s_ini = parseTime(h_ini, m_ini, str(int(s_ini) + 1))[2]
+                lv.configure(text=h_ini + ":" + m_ini + ":" + s_ini)
+
+            canvas.create_polygon(515, 40, 530, 20, 545, 40, tags="s_up")
+            canvas.tag_bind("s_up", "<Button-1>", fs_up)
+
+            # Flechas pa abajo
+            def fH_down(_):
+                global h_ini
+                if int(h_ini) < 10:
+                    resto = int(h_ini) % 10
+                    h_ini = "9" + str(resto)
+                else:
+                    h_ini = parseTime(str(int(h_ini) - 10), m_ini, s_ini)[0]
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(250, 150, 265, 170, 280, 150, tags="H_down")
+            canvas.tag_bind("H_down", "<Button-1>", fH_down)
+
+            def fh_down(_):
+                global h_ini
+                if h_ini == "00":
+                    h_ini = "99"
+                else:
+                    h_ini = parseTime(str(int(h_ini) - 1), m_ini, s_ini)[0]
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(295, 150, 310, 170, 325, 150, tags="h_down")
+            canvas.tag_bind("h_down", "<Button-1>", fh_down)
+
+            def fM_down(_):
+                global m_ini
+                if int(m_ini) < 10:
+                    resto = int(m_ini) % 10
+                    m_ini = "5" + str(resto)
+                else:
+                    m_ini = parseTime(h_ini, str(int(m_ini) - 10), s_ini)[1]
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(360, 150, 375, 170, 390, 150, tags="M_down")
+            canvas.tag_bind("M_down", "<Button-1>", fM_down)
+
+            def fm_down(_):
+                global m_ini
+                if m_ini == "00":
+                    m_ini = "59"
+                else:
+                    m_ini = parseTime(h_ini, str(int(m_ini) - 1), s_ini)[1]
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(405, 150, 420, 170, 435, 150, tags="m_down")
+            canvas.tag_bind("m_down", "<Button-1>", fm_down)
+
+            def fS_down(_):
+                global s_ini
+                if int(s_ini) < 10:
+                    resto = int(s_ini) % 10
+                    s_ini = "5" + str(resto)
+                else:
+                    s_ini = parseTime(h_ini, m_ini, str(int(s_ini) - 10))[2]
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(470, 150, 485, 170, 500, 150, tags="S_down")
+            canvas.tag_bind("S_down", "<Button-1>", fS_down)
+
+            def fs_down(_):
+                global s_ini
+                if s_ini == "00":
+                    s_ini = "59"
+                else:
+                    s_ini = parseTime(h_ini, m_ini, str(int(s_ini) - 1))[2]
+                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+
+            canvas.create_polygon(515, 150, 530, 170, 545, 150, tags="s_down")
+            canvas.tag_bind("s_down", "<Button-1>", fs_down)
+
         if 190 < y <= 380:
             print("pico pal que lee")
         if 380 < y <= 570:
@@ -272,6 +400,7 @@ def mainWindow():
         segundo_frame[0].place(x=5, y=250)
         segundo_frame[1].configure(text="PARA EL:")
         segundo_frame[1].place(x=30, y=280)
+        # aqui debo hacer el countdown de nuevo con los parametros h_ini, m_ini, s_ini nuevos
         return None
 
     ventana.bind('<Button-1>', seccion_handler)
