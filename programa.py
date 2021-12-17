@@ -42,6 +42,10 @@ def mainWindow():
     def obtenerNumero(periodo):
         return ''.join([i for i in periodo if i.isdigit()])
 
+    def periodoAHoras(periodo):
+        multiplicador = { "h": 1, "d": 24, "w": 24*7 }
+        return int(obtenerNumero(periodo)) * multiplicador[obtenerId(periodo)]
+
     def traducirPeriodo(periodo):
         periodo_len = len(obtenerId(periodo))
         # cant es la cantidad e id puede ser "s", "m", "h", etc
@@ -201,16 +205,16 @@ def mainWindow():
     tercer_frame.append(wait_label)
     wait_label.place(x=290, y=410)
 
+    curr_hora = strftime("%H:%M")
+    curr_fecha = strftime("%d-%m-%Y")
+    C1 = canvas.create_text((45, 570), font=("System", 10), text=curr_fecha)
+    C2 = canvas.create_text((45, 585), font=("System", 10), text=curr_hora)
     def actualizarReloj():
         curr_hora = strftime("%H:%M")
         curr_fecha = strftime("%d-%m-%Y")
-        canvas.create_text((45, 570), font=("System", 10), text=curr_fecha)
-        canvas.create_text((45, 585), font=("System", 10), text=curr_hora)
-        #l4 = Label(ventana, text=curr_hora, font=("System", 10))
-        #l4.place(x=25, y=560.5)
-        #l4 = Label(ventana, text=curr_fecha, font=("System", 10))
-        #l4.place(x=10, y=570.5)
-        #l4.after(1000, actualizarReloj)
+        canvas.itemconfigure(C1, text=curr_fecha)
+        canvas.itemconfigure(C2, text=curr_hora)
+        ventana.after(1000, actualizarReloj)
 
     actualizarReloj()
 
@@ -262,6 +266,8 @@ def mainWindow():
     # widgets contiene todos los botones y flechas usadas, para borrarlo dps
     widgets = []
     def configMenu():
+        global h_wt
+        h_wt = str(int(h_wt))
         global cfg_Mode
         if cfg_Mode:
             return
@@ -277,7 +283,7 @@ def mainWindow():
         primer_frame[2].configure(text="")
         primer_frame[2].place(x=5, y=110)
         primer_frame[3].configure(text=traducirPeriodo(periodo_default))
-        primer_frame[3].place(x=290, y=40)
+        primer_frame[3].place(x=270, y=40)
         L = Label(ventana, text="MODIFICAR", bg=bg_color, font=("System", 20))
         widgets.append(L)
         L.place(x=30, y=240)
@@ -294,7 +300,7 @@ def mainWindow():
         tercer_frame[0].place(x=30, y=450)
         tercer_frame[1].place(x=50, y=480)
         tercer_frame[2].configure(text=h_wt+":"+m_wt+":"+s_wt)
-        tercer_frame[2].place(x=255, y=410)
+        tercer_frame[2].place(x=270, y=410)
 
         def hrsFn():
             global periodo_default
@@ -303,7 +309,7 @@ def mainWindow():
 
         B = Button(ventana, text="Horas", command=hrsFn, bg=bg_color, font=("System", 10))
         widgets.append(B)
-        B.place(x=270, y=150)
+        B.place(x=300, y=150)
 
         def diasFn():
             global periodo_default
@@ -315,32 +321,20 @@ def mainWindow():
 
         B = Button(ventana, text="Días", command=diasFn, bg=bg_color, font=("System", 10))
         widgets.append(B)
-        B.place(x=330, y=150)
+        B.place(x=360, y=150)
 
         def semanasFn():
             global periodo_default
             num = obtenerNumero(periodo_default)
-            if int(num) > 4:
-                num = "4"
+            if int(num) > 5:
+                num = "5"
             periodo_default = num + "w"
             primer_frame[3].configure(text=traducirPeriodo(periodo_default))
             primer_frame[3].place(x=260, y=40)
 
         B = Button(ventana, text="Semanas", command=semanasFn, bg=bg_color, font=("System", 10))
         widgets.append(B)
-        B.place(x=380, y=150)
-
-        def mesesFn():
-            global periodo_default
-            num = obtenerNumero(periodo_default)
-            if int(num) > 12:
-                num = "12"
-            periodo_default = num + "mo"
-            primer_frame[3].configure(text=traducirPeriodo(periodo_default))
-
-        B = Button(ventana, text="Meses", command=mesesFn, bg=bg_color, font=("System", 10))
-        widgets.append(B)
-        B.place(x=460, y=150)
+        B.place(x=410, y=150)
 
         def fperiodo_up(_):
             global periodo_default
@@ -363,17 +357,11 @@ def mainWindow():
                     periodo_default = str(int(num) + 1) + "d"
                 new_x, new_y = 270, 40
             elif id == "w":
-                if int(num) == 4:
+                if int(num) == 5:
                     periodo_default = "1w"
                 else:
                     periodo_default = str(int(num) + 1) + "w"
                 new_x, new_y = 260, 40
-            elif id == "mo":
-                if int(num) == 12:
-                    periodo_default = "1mo"
-                else:
-                    periodo_default = str(int(num) + 1) + "mo"
-                new_x, new_y = 280, 40
             primer_frame[3].configure(text=traducirPeriodo(periodo_default))
             primer_frame[3].place(x=new_x, y=new_y)
 
@@ -403,16 +391,10 @@ def mainWindow():
                 new_x, new_y = 270, 40
             elif id == "w":
                 if int(num) == 1:
-                    periodo_default = "4w"
+                    periodo_default = "5w"
                 else:
                     periodo_default = str(int(num) - 1) + "w"
                 new_x, new_y = 260, 40
-            elif id == "mo":
-                if int(num) == 1:
-                    periodo_default = "12mo"
-                else:
-                    periodo_default = str(int(num) - 1) + "mo"
-                new_x, new_y = 280, 40
             primer_frame[3].configure(text=traducirPeriodo(periodo_default))
             primer_frame[3].place(x=new_x, y=new_y)
 
@@ -422,7 +404,7 @@ def mainWindow():
 
         def fsal_up(_):
             global sal_default
-            if int(sal_default) == 120:
+            if int(sal_default) == 100:
                 sal_default = "25"
             else:
                 sal_default = str(int(sal_default) + 1)
@@ -439,7 +421,7 @@ def mainWindow():
         def fsal_down(_):
             global sal_default
             if int(sal_default) == 25:
-                sal_default = "120"
+                sal_default = "100"
             else:
                 sal_default = str(int(sal_default) - 1)
             segundo_frame[3].configure(text=sal_default + " mg")
@@ -452,58 +434,54 @@ def mainWindow():
         widgets.append(P)
         canvas.tag_bind("sal_down", "<Button-1>", fsal_down)
 
-        def fH_up(_):
-            global h_wt
-            if int(h_wt) >= 90:
-                resto = int(h_wt) % 10
-                h_wt = "0" + str(resto)
-            else:
-                h_wt = str(int(h_wt) + 10)
-            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
-
-        P = canvas.create_polygon(265, 410, 280, 390, 295, 410, tags="H_up")
-        widgets.append(P)
-        canvas.tag_bind("H_up", "<Button-1>", fH_up)
-
         def fh_up(_):
-            global h_wt
-            if int(h_wt) == 99:
-                h_wt = "00"
+            global h_wt, m_wt, s_wt
+            if int(h_wt) == 0:
+                h_wt, m_wt, s_wt = "1", "00", "00"
             else:
-                h_wt = parseTime(str(int(h_wt) + 1), m_wt, s_wt)[0]
+                h_wt, m_wt, s_wt = "0", "05", "00"
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(310, 410, 325, 390, 340, 410, tags="h_up")
+        P = canvas.create_polygon(280, 410, 295, 390, 310, 410, tags="h_up")
         widgets.append(P)
         canvas.tag_bind("h_up", "<Button-1>", fh_up)
 
         def fM_up(_):
-            global m_wt
+            global m_wt, h_wt
+            if int(h_wt) == 1:
+                return
             if int(m_wt) >= 50:
                 resto = int(m_wt) % 10
-                m_wt = "0" + str(resto)
+                if resto < 5:
+                    m_wt = "05"
+                else:
+                    m_wt = "0" + str(resto)
             else:
                 m_wt = str(int(m_wt) + 10)
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(375, 410, 390, 390, 405, 410, tags="M_up")
+        P = canvas.create_polygon(345, 410, 360, 390, 375, 410, tags="M_up")
         widgets.append(P)
         canvas.tag_bind("M_up", "<Button-1>", fM_up)
 
         def fm_up(_):
-            global m_wt
+            global m_wt, h_wt
+            if int(h_wt) == 1:
+                return
             if int(m_wt) == 59:
-                m_wt = "00"
+                m_wt = "05"
             else:
                 m_wt = parseTime(h_wt, str(int(m_wt) + 1), s_wt)[1]
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(420, 410, 435, 390, 450, 410, tags="m_up")
+        P = canvas.create_polygon(390, 410, 405, 390, 420, 410, tags="m_up")
         widgets.append(P)
         canvas.tag_bind("m_up", "<Button-1>", fm_up)
 
         def fS_up(_):
-            global s_wt
+            global s_wt, h_wt
+            if int(h_wt) == 1:
+                return
             if int(s_wt) >= 50:
                 resto = int(s_wt) % 10
                 s_wt = "0" + str(resto)
@@ -511,75 +489,71 @@ def mainWindow():
                 s_wt = str(int(s_wt) + 10)
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(485, 410, 500, 390, 515, 410, tags="S_up")
+        P = canvas.create_polygon(455, 410, 470, 390, 485, 410, tags="S_up")
         widgets.append(P)
         canvas.tag_bind("S_up", "<Button-1>", fS_up)
 
         def fs_up(_):
-            global s_wt
+            global s_wt, h_wt
+            if int(h_wt) == 1:
+                return
             if int(s_wt) == 59:
                 s_wt = "00"
             else:
                 s_wt = parseTime(h_wt, m_wt, str(int(s_wt) + 1))[2]
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(530, 410, 545, 390, 560, 410, tags="s_up")
+        P = canvas.create_polygon(500, 410, 515, 390, 530, 410, tags="s_up")
         widgets.append(P)
         canvas.tag_bind("s_up", "<Button-1>", fs_up)
 
-        # Flechas pa abajo
-        def fH_down(_):
-            global h_wt
-            if int(h_wt) < 10:
-                resto = int(h_wt) % 10
-                h_wt = "9" + str(resto)
-            else:
-                h_wt = parseTime(str(int(h_wt) - 10), m_wt, s_wt)[0]
-            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
-
-        P = canvas.create_polygon(265, 520, 280, 540, 295, 520, tags="H_down")
-        widgets.append(P)
-        canvas.tag_bind("H_down", "<Button-1>", fH_down)
-
         def fh_down(_):
-            global h_wt
-            if h_wt == "00":
-                h_wt = "99"
+            global h_wt, m_wt, s_wt
+            if int(h_wt) == 0:
+                h_wt, m_wt, s_wt = "1", "00", "00"
             else:
-                h_wt = parseTime(str(int(h_wt) - 1), m_wt, s_wt)[0]
+                h_wt, m_wt, s_wt = "0", "05", "00"
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(310, 520, 325, 540, 340, 520, tags="h_down")
+        P = canvas.create_polygon(280, 520, 295, 540, 310, 520, tags="h_down")
         widgets.append(P)
         canvas.tag_bind("h_down", "<Button-1>", fh_down)
 
         def fM_down(_):
-            global m_wt
+            global m_wt, h_wt
+            if int(h_wt) == 1:
+                return
             if int(m_wt) < 10:
                 resto = int(m_wt) % 10
                 m_wt = "5" + str(resto)
+            elif 10 <= int(m_wt) <= 14:
+                m_wt = "05"
             else:
                 m_wt = parseTime(h_wt, str(int(m_wt) - 10), s_wt)[1]
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(375, 520, 390, 540, 405, 520, tags="M_down")
+        P = canvas.create_polygon(345, 520, 360, 540, 375, 520, tags="M_down")
         widgets.append(P)
         canvas.tag_bind("M_down", "<Button-1>", fM_down)
 
         def fm_down(_):
-            global m_wt
-            if m_wt == "00":
+            global m_wt, h_wt
+            if int(h_wt) == 1:
+                return
+            if m_wt == "05":
                 m_wt = "59"
             else:
                 m_wt = parseTime(h_wt, str(int(m_wt) - 1), s_wt)[1]
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(420, 520, 435, 540, 450, 520, tags="m_down")
+        P = canvas.create_polygon(390, 520, 405, 540, 420, 520, tags="m_down")
         widgets.append(P)
         canvas.tag_bind("m_down", "<Button-1>", fm_down)
 
         def fS_down(_):
-            global s_wt
+            global s_wt, h_wt
+            if int(h_wt) == 1:
+                return
             if int(s_wt) < 10:
                 resto = int(s_wt) % 10
                 s_wt = "5" + str(resto)
@@ -587,19 +561,21 @@ def mainWindow():
                 s_wt = parseTime(h_wt, m_wt, str(int(s_wt) - 10))[2]
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(485, 520, 500, 540, 515, 520, tags="S_down")
+        P = canvas.create_polygon(455, 520, 470, 540, 485, 520, tags="S_down")
         widgets.append(P)
         canvas.tag_bind("S_down", "<Button-1>", fS_down)
 
         def fs_down(_):
-            global s_wt
+            global s_wt, h_wt
+            if int(h_wt) == 1:
+                return
             if s_wt == "00":
                 s_wt = "59"
             else:
                 s_wt = parseTime(h_wt, m_wt, str(int(s_wt) - 1))[2]
             tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
 
-        P = canvas.create_polygon(530, 520, 545, 540, 560, 520, tags="s_down")
+        P = canvas.create_polygon(500, 520, 515, 540, 530, 520, tags="s_down")
         widgets.append(P)
         canvas.tag_bind("s_down", "<Button-1>", fs_down)
 
@@ -624,8 +600,13 @@ def mainWindow():
         primer_frame[1].place(x=30, y=80)
         primer_frame[2].configure(text="EN:")
         primer_frame[2].place(x=80, y=110)
-        primer_frame[3].configure(text=h_ini + ":" + m_ini + ":" + s_ini)
-        primer_frame[3].place(x=240, y=40)
+        h_ini = parseTime(str(periodoAHoras(periodo_default)), "00", "00")[0]
+        primer_frame[3].configure(text=h_ini + ":00:00")
+        x_prox, y_prox = 0, 0
+        if int(h_ini) >= 100:
+            x_prox, y_prox = 220, 40
+        else:
+            x_prox, y_prox = 240, 40
         timestamp = time()
         timestamp += toTimestamp(h_ini, m_ini, s_ini)
         n_hora = obtenerHora(timestamp)
@@ -645,7 +626,7 @@ def mainWindow():
         tercer_frame[2].configure(text="--:--:--")
         tercer_frame[2].place(x=290, y=410)
 
-        countdown(h_ini, m_ini, s_ini, 240, 40, 0, primer_frame[3], tercer_frame[2])
+        countdown(h_ini, "00", "00", x_prox, y_prox, 0, primer_frame[3], tercer_frame[2])
 
     b1 = Button(ventana, text="Ajustes", command=configMenu, bg=bg_color, font=("System", 10))
     b1.place(x=420, y=565)
