@@ -17,15 +17,46 @@ h_wt = "00"
 m_wt = "00"
 s_wt = "05"
 
+# cantidad default de sal a dispensar (en gramos)
+# puede ser editada desde aqui o desde el menu config
+sal_default = "50"
+sal_disponible = "1000"
+
+# periodo default de dispensacion (1 dia)
+# d=dia h=hora m=minuto s=segundo w=semana mo=mes
+# lo mismo de antes aplica para esta opcion
+periodo_default = "1d"
+
 # si el modo config esta activado o no
 cfg_Mode = False
 
 ventana = Tk()
 ventana.geometry("600x600")
-ventana.title("Dispensador de sal de polifosfato")
+ventana.title("Dispensador de sal de polifosfato - DEMO (E19 Kakosbathiophobia CD1201-3)")
 ventana.configure(background=bg_color)
 
 def mainWindow():
+    def obtenerId(periodo):
+        return ''.join([i for i in periodo if not i.isdigit()])
+
+    def obtenerNumero(periodo):
+        return ''.join([i for i in periodo if i.isdigit()])
+
+    def traducirPeriodo(periodo):
+        periodo_len = len(obtenerId(periodo))
+        # cant es la cantidad e id puede ser "s", "m", "h", etc
+        cant, id = periodo[0:-periodo_len], periodo[-periodo_len:]
+        traducciones = { "h": "hr", "w": "sem", "d": "día", "mo": "mes" }
+        if int(cant) != 1 and id != "w":
+            if id != "mo":
+                id = traducciones[id] + "s"
+            else:
+                id = traducciones[id] + "es"
+        else:
+            id = traducciones[id]
+
+        return cant + " " + id
+
     # str str str -> list(str)
     def parseTime(h, m, s):
         if int(h) < 10:
@@ -173,21 +204,27 @@ def mainWindow():
     def actualizarReloj():
         curr_hora = strftime("%H:%M")
         curr_fecha = strftime("%d-%m-%Y")
-        l4 = Label(ventana, text=curr_hora, bg=bg_color, font=("System", 10))
-        l4.place(x=25, y=567.5)
-        l4 = Label(ventana, text=curr_fecha, bg=bg_color, font=("System", 10))
-        l4.place(x=200, y=567.5)
-        l4.after(1000, actualizarReloj)
+        canvas.create_text((45, 570), font=("System", 10), text=curr_fecha)
+        canvas.create_text((45, 585), font=("System", 10), text=curr_hora)
+        #l4 = Label(ventana, text=curr_hora, font=("System", 10))
+        #l4.place(x=25, y=560.5)
+        #l4 = Label(ventana, text=curr_fecha, font=("System", 10))
+        #l4.place(x=10, y=570.5)
+        #l4.after(1000, actualizarReloj)
 
     actualizarReloj()
 
     l6 = Label(ventana, text="56%", bg=bg_color, font=("System", 10))
     l6.place(x=130, y=567.5)
 
+    sal_label = Label(ventana, text="Disp.: "+sal_disponible+"mg ("+sal_default+"mg por periodo)", \
+                      bg=bg_color, font=("System", 10))
+    sal_label.place(x=180, y=567.5)
+
     # De aqui para abajo, incluyendo countdown(h,m,s), hace que el tiempo de dispensacion baje.
     # str str str int int int Label Label -> None
     def countdown(h, m, s, x, y, stage, main_label, second_label):
-        global cfg_Mode
+        global cfg_Mode, sal_disponible
         # si esta en el modo config, no queremos que siga la cuenta atras
         if cfg_Mode:
             return
@@ -203,6 +240,9 @@ def mainWindow():
                         # main_label es el dispose_time
                         countdownEnd(main_label, date_label, hour_label, second_label, main_label, stage)
                     elif stage == 1:
+                        if int(sal_disponible) - int(sal_default) >= 0:
+                            sal_disponible = str(int(sal_disponible) - int(sal_default))
+                            sal_label.configure(text="Disp.: "+sal_disponible+"mg ("+sal_default+"mg por periodo)")
                         # main_label ahora es el tiempo de espera
                         countdownEnd(main_label, date_label, hour_label, main_label, second_label, stage)
                     return
@@ -219,198 +259,398 @@ def mainWindow():
 
         countdown(nh, nm, ns, x, y, stage, main_label, second_label)
 
-    def test():
+    # widgets contiene todos los botones y flechas usadas, para borrarlo dps
+    widgets = []
+    def configMenu():
         global cfg_Mode
+        if cfg_Mode:
+            return
         cfg_Mode = True
         canvas.move(vertical, 20, 0)
+        L = Label(ventana, text="MODIFICAR", bg=bg_color, font=("System", 20))
+        widgets.append(L)
+        L.place(x=30, y=50)
         primer_frame[0].configure(text="PERIODO DE")
-        primer_frame[0].place(x=20, y=60)
+        primer_frame[0].place(x=20, y=80)
         primer_frame[1].configure(text="DISPENSACION:")
-        primer_frame[1].place(x=5, y=90)
+        primer_frame[1].place(x=5, y=110)
         primer_frame[2].configure(text="")
         primer_frame[2].place(x=5, y=110)
-        segundo_frame[0].configure(text="SAL A")
+        primer_frame[3].configure(text=traducirPeriodo(periodo_default))
+        primer_frame[3].place(x=290, y=40)
+        L = Label(ventana, text="MODIFICAR", bg=bg_color, font=("System", 20))
+        widgets.append(L)
+        L.place(x=30, y=240)
+        segundo_frame[0].configure(text="CANT. DE SAL A")
+        segundo_frame[0].place(x=10, y=270)
         segundo_frame[1].configure(text="DISPENSAR:")
+        segundo_frame[1].place(x=30, y=300)
+        segundo_frame[2].configure(text="")
+        segundo_frame[3].configure(text=sal_default + " mg")
+        segundo_frame[3].place(x=260, y=230)
+        L = Label(ventana, text="MODIFICAR", bg=bg_color, font=("System", 20))
+        widgets.append(L)
+        L.place(x=30, y=420)
+        tercer_frame[0].place(x=30, y=450)
+        tercer_frame[1].place(x=50, y=480)
+        tercer_frame[2].configure(text=h_wt+":"+m_wt+":"+s_wt)
+        tercer_frame[2].place(x=255, y=410)
 
-    # Event -> None
-    def seccion_handler(e):
-        global cfg_Mode
-        if not cfg_Mode:
-            return
-        x, y = e.x, e.y
-        print(x, y)
-        if x > 600 or x < 230 or y < 0 or y > 570:
-            return
-        if 0 <= y <= 190:
-            def fH_up(_):
-                global h_ini
-                if int(h_ini) >= 90:
-                    resto = int(h_ini) % 10
-                    h_ini = "0" + str(resto)
+        def hrsFn():
+            global periodo_default
+            periodo_default = obtenerNumero(periodo_default) + "h"
+            primer_frame[3].configure(text=traducirPeriodo(periodo_default))
+
+        B = Button(ventana, text="Horas", command=hrsFn, bg=bg_color, font=("System", 10))
+        widgets.append(B)
+        B.place(x=270, y=150)
+
+        def diasFn():
+            global periodo_default
+            num = obtenerNumero(periodo_default)
+            if int(num) > 7:
+                num = "7"
+            periodo_default = num + "d"
+            primer_frame[3].configure(text=traducirPeriodo(periodo_default))
+
+        B = Button(ventana, text="Días", command=diasFn, bg=bg_color, font=("System", 10))
+        widgets.append(B)
+        B.place(x=330, y=150)
+
+        def semanasFn():
+            global periodo_default
+            num = obtenerNumero(periodo_default)
+            if int(num) > 4:
+                num = "4"
+            periodo_default = num + "w"
+            primer_frame[3].configure(text=traducirPeriodo(periodo_default))
+            primer_frame[3].place(x=260, y=40)
+
+        B = Button(ventana, text="Semanas", command=semanasFn, bg=bg_color, font=("System", 10))
+        widgets.append(B)
+        B.place(x=380, y=150)
+
+        def mesesFn():
+            global periodo_default
+            num = obtenerNumero(periodo_default)
+            if int(num) > 12:
+                num = "12"
+            periodo_default = num + "mo"
+            primer_frame[3].configure(text=traducirPeriodo(periodo_default))
+
+        B = Button(ventana, text="Meses", command=mesesFn, bg=bg_color, font=("System", 10))
+        widgets.append(B)
+        B.place(x=460, y=150)
+
+        def fperiodo_up(_):
+            global periodo_default
+            id = obtenerId(periodo_default)
+            num = obtenerNumero(periodo_default)
+            new_x, new_y = 0, 0
+            if id == "h":
+                if int(num) == 24:
+                    periodo_default = "1h"
                 else:
-                    h_ini = str(int(h_ini) + 10)
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
-
-            canvas.create_polygon(250, 40, 265, 20, 280, 40, tags="H_up")
-            canvas.tag_bind("H_up", "<Button-1>", fH_up)
-
-            def fh_up(_):
-                global h_ini
-                if int(h_ini) == 99:
-                    h_ini = "00"
+                    periodo_default = str(int(num) + 1) + "h"
+                if int(num) < 9:
+                    new_x, new_y = 280, 40
                 else:
-                    h_ini = parseTime(str(int(h_ini) + 1), m_ini, s_ini)[0]
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
-
-            canvas.create_polygon(295, 40, 310, 20, 325, 40, tags="h_up")
-            canvas.tag_bind("h_up", "<Button-1>", fh_up)
-
-            def fM_up(_):
-                global m_ini
-                if int(m_ini) >= 50:
-                    resto = int(m_ini) % 10
-                    m_ini = "0" + str(resto)
+                    new_x, new_y = 260, 40
+            elif id == "d":
+                if int(num) == 7:
+                    periodo_default = "1d"
                 else:
-                    m_ini = str(int(m_ini) + 10)
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
-
-            canvas.create_polygon(360, 40, 375, 20, 390, 40, tags="M_up")
-            canvas.tag_bind("M_up", "<Button-1>", fM_up)
-
-            def fm_up(_):
-                global m_ini
-                if int(m_ini) == 59:
-                    m_ini = "00"
+                    periodo_default = str(int(num) + 1) + "d"
+                new_x, new_y = 270, 40
+            elif id == "w":
+                if int(num) == 4:
+                    periodo_default = "1w"
                 else:
-                    m_ini = parseTime(h_ini, str(int(m_ini) + 1), s_ini)[1]
-                lv.configure(text=h_ini + ":" + m_ini + ":" + s_ini)
-
-            canvas.create_polygon(405, 40, 420, 20, 435, 40, tags="m_up")
-            canvas.tag_bind("m_up", "<Button-1>", fm_up)
-
-            def fS_up(_):
-                global s_ini
-                if int(s_ini) >= 50:
-                    resto = int(s_ini) % 10
-                    s_ini = "0" + str(resto)
+                    periodo_default = str(int(num) + 1) + "w"
+                new_x, new_y = 260, 40
+            elif id == "mo":
+                if int(num) == 12:
+                    periodo_default = "1mo"
                 else:
-                    s_ini = str(int(s_ini) + 10)
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+                    periodo_default = str(int(num) + 1) + "mo"
+                new_x, new_y = 280, 40
+            primer_frame[3].configure(text=traducirPeriodo(periodo_default))
+            primer_frame[3].place(x=new_x, y=new_y)
 
-            canvas.create_polygon(470, 40, 485, 20, 500, 40, tags="S_up")
-            canvas.tag_bind("S_up", "<Button-1>", fS_up)
+        P = canvas.create_polygon(520, 60, 535, 40, 550, 60, tags="periodo_up")
+        widgets.append(P)
+        canvas.tag_bind("periodo_up", "<Button-1>", fperiodo_up)
 
-            def fs_up(_):
-                global s_ini
-                if int(s_ini) == 59:
-                    s_ini = "00"
+        def fperiodo_down(_):
+            global periodo_default
+            id = obtenerId(periodo_default)
+            num = obtenerNumero(periodo_default)
+            new_x, new_y = 0, 0
+            if id == "h":
+                if int(num) == 1:
+                    periodo_default = "24h"
                 else:
-                    s_ini = parseTime(h_ini, m_ini, str(int(s_ini) + 1))[2]
-                lv.configure(text=h_ini + ":" + m_ini + ":" + s_ini)
-
-            canvas.create_polygon(515, 40, 530, 20, 545, 40, tags="s_up")
-            canvas.tag_bind("s_up", "<Button-1>", fs_up)
-
-            # Flechas pa abajo
-            def fH_down(_):
-                global h_ini
-                if int(h_ini) < 10:
-                    resto = int(h_ini) % 10
-                    h_ini = "9" + str(resto)
+                    periodo_default = str(int(num) - 1) + "h"
+                if int(num) < 10:
+                    new_x, new_y = 270, 40
                 else:
-                    h_ini = parseTime(str(int(h_ini) - 10), m_ini, s_ini)[0]
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
-
-            canvas.create_polygon(250, 150, 265, 170, 280, 150, tags="H_down")
-            canvas.tag_bind("H_down", "<Button-1>", fH_down)
-
-            def fh_down(_):
-                global h_ini
-                if h_ini == "00":
-                    h_ini = "99"
+                    new_x, new_y = 260, 40
+            elif id == "d":
+                if int(num) == 1:
+                    periodo_default = "7d"
                 else:
-                    h_ini = parseTime(str(int(h_ini) - 1), m_ini, s_ini)[0]
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
-
-            canvas.create_polygon(295, 150, 310, 170, 325, 150, tags="h_down")
-            canvas.tag_bind("h_down", "<Button-1>", fh_down)
-
-            def fM_down(_):
-                global m_ini
-                if int(m_ini) < 10:
-                    resto = int(m_ini) % 10
-                    m_ini = "5" + str(resto)
+                    periodo_default = str(int(num) - 1) + "d"
+                new_x, new_y = 270, 40
+            elif id == "w":
+                if int(num) == 1:
+                    periodo_default = "4w"
                 else:
-                    m_ini = parseTime(h_ini, str(int(m_ini) - 10), s_ini)[1]
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
-
-            canvas.create_polygon(360, 150, 375, 170, 390, 150, tags="M_down")
-            canvas.tag_bind("M_down", "<Button-1>", fM_down)
-
-            def fm_down(_):
-                global m_ini
-                if m_ini == "00":
-                    m_ini = "59"
+                    periodo_default = str(int(num) - 1) + "w"
+                new_x, new_y = 260, 40
+            elif id == "mo":
+                if int(num) == 1:
+                    periodo_default = "12mo"
                 else:
-                    m_ini = parseTime(h_ini, str(int(m_ini) - 1), s_ini)[1]
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+                    periodo_default = str(int(num) - 1) + "mo"
+                new_x, new_y = 280, 40
+            primer_frame[3].configure(text=traducirPeriodo(periodo_default))
+            primer_frame[3].place(x=new_x, y=new_y)
 
-            canvas.create_polygon(405, 150, 420, 170, 435, 150, tags="m_down")
-            canvas.tag_bind("m_down", "<Button-1>", fm_down)
+        P = canvas.create_polygon(520, 130, 535, 150, 550, 130, tags="periodo_down")
+        widgets.append(P)
+        canvas.tag_bind("periodo_down", "<Button-1>", fperiodo_down)
 
-            def fS_down(_):
-                global s_ini
-                if int(s_ini) < 10:
-                    resto = int(s_ini) % 10
-                    s_ini = "5" + str(resto)
-                else:
-                    s_ini = parseTime(h_ini, m_ini, str(int(s_ini) - 10))[2]
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+        def fsal_up(_):
+            global sal_default
+            if int(sal_default) == 120:
+                sal_default = "25"
+            else:
+                sal_default = str(int(sal_default) + 1)
+            segundo_frame[3].configure(text=sal_default + " mg")
+            if int(sal_default) >= 100:
+                segundo_frame[3].place(x=240, y=230)
+            else:
+                segundo_frame[3].place(x=260, y=230)
 
-            canvas.create_polygon(470, 150, 485, 170, 500, 150, tags="S_down")
-            canvas.tag_bind("S_down", "<Button-1>", fS_down)
+        P = canvas.create_polygon(520, 250, 535, 230, 550, 250, tags="sal_up")
+        widgets.append(P)
+        canvas.tag_bind("sal_up", "<Button-1>", fsal_up)
 
-            def fs_down(_):
-                global s_ini
-                if s_ini == "00":
-                    s_ini = "59"
-                else:
-                    s_ini = parseTime(h_ini, m_ini, str(int(s_ini) - 1))[2]
-                lv.configure(text=h_ini+":"+m_ini+":"+s_ini)
+        def fsal_down(_):
+            global sal_default
+            if int(sal_default) == 25:
+                sal_default = "120"
+            else:
+                sal_default = str(int(sal_default) - 1)
+            segundo_frame[3].configure(text=sal_default + " mg")
+            if int(sal_default) >= 100:
+                segundo_frame[3].place(x=240, y=230)
+            else:
+                segundo_frame[3].place(x=260, y=230)
 
-            canvas.create_polygon(515, 150, 530, 170, 545, 150, tags="s_down")
-            canvas.tag_bind("s_down", "<Button-1>", fs_down)
+        P = canvas.create_polygon(520, 320, 535, 340, 550, 320, tags="sal_down")
+        widgets.append(P)
+        canvas.tag_bind("sal_down", "<Button-1>", fsal_down)
 
-        if 190 < y <= 380:
-            print("pico pal que lee")
-        if 380 < y <= 570:
-            print("pico pal que baila")
+        def fH_up(_):
+            global h_wt
+            if int(h_wt) >= 90:
+                resto = int(h_wt) % 10
+                h_wt = "0" + str(resto)
+            else:
+                h_wt = str(int(h_wt) + 10)
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(265, 410, 280, 390, 295, 410, tags="H_up")
+        widgets.append(P)
+        canvas.tag_bind("H_up", "<Button-1>", fH_up)
+
+        def fh_up(_):
+            global h_wt
+            if int(h_wt) == 99:
+                h_wt = "00"
+            else:
+                h_wt = parseTime(str(int(h_wt) + 1), m_wt, s_wt)[0]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(310, 410, 325, 390, 340, 410, tags="h_up")
+        widgets.append(P)
+        canvas.tag_bind("h_up", "<Button-1>", fh_up)
+
+        def fM_up(_):
+            global m_wt
+            if int(m_wt) >= 50:
+                resto = int(m_wt) % 10
+                m_wt = "0" + str(resto)
+            else:
+                m_wt = str(int(m_wt) + 10)
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(375, 410, 390, 390, 405, 410, tags="M_up")
+        widgets.append(P)
+        canvas.tag_bind("M_up", "<Button-1>", fM_up)
+
+        def fm_up(_):
+            global m_wt
+            if int(m_wt) == 59:
+                m_wt = "00"
+            else:
+                m_wt = parseTime(h_wt, str(int(m_wt) + 1), s_wt)[1]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(420, 410, 435, 390, 450, 410, tags="m_up")
+        widgets.append(P)
+        canvas.tag_bind("m_up", "<Button-1>", fm_up)
+
+        def fS_up(_):
+            global s_wt
+            if int(s_wt) >= 50:
+                resto = int(s_wt) % 10
+                s_wt = "0" + str(resto)
+            else:
+                s_wt = str(int(s_wt) + 10)
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(485, 410, 500, 390, 515, 410, tags="S_up")
+        widgets.append(P)
+        canvas.tag_bind("S_up", "<Button-1>", fS_up)
+
+        def fs_up(_):
+            global s_wt
+            if int(s_wt) == 59:
+                s_wt = "00"
+            else:
+                s_wt = parseTime(h_wt, m_wt, str(int(s_wt) + 1))[2]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(530, 410, 545, 390, 560, 410, tags="s_up")
+        widgets.append(P)
+        canvas.tag_bind("s_up", "<Button-1>", fs_up)
+
+        # Flechas pa abajo
+        def fH_down(_):
+            global h_wt
+            if int(h_wt) < 10:
+                resto = int(h_wt) % 10
+                h_wt = "9" + str(resto)
+            else:
+                h_wt = parseTime(str(int(h_wt) - 10), m_wt, s_wt)[0]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(265, 520, 280, 540, 295, 520, tags="H_down")
+        widgets.append(P)
+        canvas.tag_bind("H_down", "<Button-1>", fH_down)
+
+        def fh_down(_):
+            global h_wt
+            if h_wt == "00":
+                h_wt = "99"
+            else:
+                h_wt = parseTime(str(int(h_wt) - 1), m_wt, s_wt)[0]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(310, 520, 325, 540, 340, 520, tags="h_down")
+        widgets.append(P)
+        canvas.tag_bind("h_down", "<Button-1>", fh_down)
+
+        def fM_down(_):
+            global m_wt
+            if int(m_wt) < 10:
+                resto = int(m_wt) % 10
+                m_wt = "5" + str(resto)
+            else:
+                m_wt = parseTime(h_wt, str(int(m_wt) - 10), s_wt)[1]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(375, 520, 390, 540, 405, 520, tags="M_down")
+        widgets.append(P)
+        canvas.tag_bind("M_down", "<Button-1>", fM_down)
+
+        def fm_down(_):
+            global m_wt
+            if m_wt == "00":
+                m_wt = "59"
+            else:
+                m_wt = parseTime(h_wt, str(int(m_wt) - 1), s_wt)[1]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(420, 520, 435, 540, 450, 520, tags="m_down")
+        widgets.append(P)
+        canvas.tag_bind("m_down", "<Button-1>", fm_down)
+
+        def fS_down(_):
+            global s_wt
+            if int(s_wt) < 10:
+                resto = int(s_wt) % 10
+                s_wt = "5" + str(resto)
+            else:
+                s_wt = parseTime(h_wt, m_wt, str(int(s_wt) - 10))[2]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(485, 520, 500, 540, 515, 520, tags="S_down")
+        widgets.append(P)
+        canvas.tag_bind("S_down", "<Button-1>", fS_down)
+
+        def fs_down(_):
+            global s_wt
+            if s_wt == "00":
+                s_wt = "59"
+            else:
+                s_wt = parseTime(h_wt, m_wt, str(int(s_wt) - 1))[2]
+            tercer_frame[2].configure(text=h_wt + ":" + m_wt + ":" + s_wt)
+
+        P = canvas.create_polygon(530, 520, 545, 540, 560, 520, tags="s_down")
+        widgets.append(P)
+        canvas.tag_bind("s_down", "<Button-1>", fs_down)
 
     def homeBtn():
         global cfg_Mode
+        if not cfg_Mode:
+            return
         cfg_Mode = False
+        # borramos todos los widgets de la config
+        for widget in widgets:
+            if type(widget) == int:
+                canvas.delete(widget)
+            else:
+                widget.destroy()
         canvas.move(vertical, -20, 0)
+        # Por si modifico la cant. de sal
+        sal_label.configure(text="Disp.: " + sal_disponible + "mg (" + sal_default + "mg por periodo)")
+        # Primer frame
         primer_frame[0].configure(text="PRÓXIMA")
         primer_frame[0].place(x=40, y=50)
         primer_frame[1].configure(text="DESCARGA")
         primer_frame[1].place(x=30, y=80)
         primer_frame[2].configure(text="EN:")
         primer_frame[2].place(x=80, y=110)
+        primer_frame[3].configure(text=h_ini + ":" + m_ini + ":" + s_ini)
+        primer_frame[3].place(x=240, y=40)
+        timestamp = time()
+        timestamp += toTimestamp(h_ini, m_ini, s_ini)
+        n_hora = obtenerHora(timestamp)
+        n_fecha = obtenerFecha(timestamp)
+        # Segundo frame
         segundo_frame[0].configure(text="PROGRAMADO")
         segundo_frame[0].place(x=5, y=250)
         segundo_frame[1].configure(text="PARA EL:")
         segundo_frame[1].place(x=30, y=280)
-        # aqui debo hacer el countdown de nuevo con los parametros h_ini, m_ini, s_ini nuevos
-        return None
+        segundo_frame[2].configure(text=n_fecha + " A LAS:")
+        segundo_frame[2].place(x=220, y=210)
+        segundo_frame[3].configure(text=n_hora)
+        segundo_frame[3].place(x=240, y=260)
+        # Tercer frame
+        tercer_frame[0].place(x=20, y=430)
+        tercer_frame[1].place(x=40, y=460)
+        tercer_frame[2].configure(text="--:--:--")
+        tercer_frame[2].place(x=290, y=410)
 
-    ventana.bind('<Button-1>', seccion_handler)
+        countdown(h_ini, m_ini, s_ini, 240, 40, 0, primer_frame[3], tercer_frame[2])
 
-    b1 = Button(ventana, text="Configuración", command=test, bg=bg_color, font=("System", 10))
-    b1.place(x=310, y=565)
+    b1 = Button(ventana, text="Ajustes", command=configMenu, bg=bg_color, font=("System", 10))
+    b1.place(x=420, y=565)
     b2 = Button(ventana, text="Inicio", command=homeBtn, bg=bg_color, font=("System", 10))
-    b2.place(x=415, y=565)
-    b3 = Button(ventana, text="Regresar", command=ventana.destroy, bg=bg_color, font=("System", 10))
-    b3.place(x=465, y=565)
+    b2.place(x=487, y=565)
     b4 = Button(ventana, text="Apagar", command=ventana.destroy, bg=bg_color, font=("System", 10))
     b4.place(x=540, y=565)
 
